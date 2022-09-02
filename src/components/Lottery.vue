@@ -3,10 +3,7 @@
   <div class="lottery-circle-wrapper">
     <div class="lottery-circle-container">
       <div class="lottery-circle">
-        <div
-          class="lottery-circle-img-container lotteryRound-anim"
-          :style="`animation-play-state:${rotateAnimState};`"
-        >
+        <div class="lottery-circle-img-container">
           <img
             class="lottery-circle-img"
             src="@/assets/image/turntable.png"
@@ -49,35 +46,58 @@ import rewards from '@/utils/constants';
 // 常量区
 // 默认角度
 const roundRotateDeg = ref(30);
-// 默认旋转动画状态
-const rotateAnimState = ref('paused');
+
 // 默认的旋转状态
 const isRotate = ref(false);
+
+// 定时器
+let rotateTimer = null;
 
 // computed
 
 // 生命周期区
 onMounted(() => {
   console.log(rewards);
+  rotateBeforeClick();
 });
 //方法区
 
 // 主函数区
-const clickLotteryButton = () => {
-  //   如果圆盘没在旋转，那么就让他旋转
-  let isRotateState = isRotate.value;
 
+//  点击开始抽奖
+const clickLotteryButton = () => {
+  let isRotateState = isRotate.value;
+  //   如果圆盘没在通过点击旋转，那么就让他旋转
   if (!isRotateState) {
-    rotateAnimState.value = 'paused';
+    clearInterval(rotateTimer);
 
     let randomNum = parseInt(Math.random() * 5);
     let rewardName = rewards[randomNum];
-    console.log('点击抽奖按钮', randomNum, rewardName);
-    let realRoundRotateDeg = randomNum * 60 + 30;
+
+    //产生一个负5 到 5 之间的随机数
+    let randomAngle = createRandomNum(-20, 20);
+
+    console.log('点击抽奖按钮', randomNum, rewardName, randomAngle);
+
+    let realRoundRotateDeg = randomNum * 60 + 30 + randomAngle;
+
     //   设置旋转的子函数 详情在子函数区
     rotateFun(realRoundRotateDeg);
   }
 };
+
+// 用于设置圆盘未点击的自动旋转
+const rotateBeforeClick = () => {
+  rotateTimer = setInterval(() => {
+    let isRotateState = isRotate.value;
+    //   如果圆盘没在通过点击旋转，那么就让他旋转
+    if (!isRotateState) {
+      let roundRotateDegNum = roundRotateDeg.value + 1;
+      roundRotateDeg.value = roundRotateDegNum;
+    }
+  }, 40);
+};
+
 /// 子函数区
 // 用于设置旋转圈数的函数
 const rotateFun = (angle) => {
@@ -87,12 +107,18 @@ const rotateFun = (angle) => {
   //当前的角度
   let nowAngle = 0;
 
+  //基本的旋转随机圈数
+  let basicRoundNum = createRandomNum(3, 7);
+
+  console.log(basicRoundNum);
   //基本的旋转角度
-  //必须为360的倍数，仅是增加圈数
-  let basicAngle = 720;
+  let basicAngle = basicRoundNum * 360;
 
   //设置圆盘在旋转状态
   isRotate.value = true;
+
+  // 清空未点击时旋转的timer
+  clearInterval(rotateTimer);
 
   timer = setInterval(() => {
     // 当前的角度大于需要旋转的角度时，重置当前角度，清空定时器
@@ -108,6 +134,12 @@ const rotateFun = (angle) => {
       roundRotateDeg.value = nowAngle;
     }
   }, 50);
+};
+
+// 产生一个范围内的随机数
+const createRandomNum = (min, max) => {
+  let randomNum = Math.floor(min + Math.random() * (max - min));
+  return randomNum;
 };
 </script>
 
