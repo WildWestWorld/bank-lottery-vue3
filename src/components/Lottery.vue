@@ -32,7 +32,9 @@
         </div>
 
         <div class="remaining-number-container">
-          <span class="remaining-number">今日剩余次数：3次</span>
+          <span class="remaining-number"
+            >今日剩余次数：{{ store.state.setting.remainLotteryNum }}次</span
+          >
         </div>
       </div>
     </div>
@@ -41,9 +43,14 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useStore } from 'vuex';
+
 import rewards from '@/utils/constants';
 
 // 常量区
+// 引入vuex
+const store = useStore();
+
 // 默认角度
 const roundRotateDeg = ref(30);
 
@@ -58,10 +65,13 @@ let rotateTimer = null;
 // 生命周期区
 onMounted(() => {
   console.log(rewards);
+  console.log(store);
+  console.log(store.state.setting.remainLotteryNum);
+
   rotateBeforeClick();
 });
-//方法区
 
+//方法区
 // 主函数区
 
 //  点击开始抽奖
@@ -70,6 +80,10 @@ const clickLotteryButton = () => {
   //   如果圆盘没在通过点击旋转，那么就让他旋转
   if (!isRotateState) {
     clearInterval(rotateTimer);
+
+    //  今日抽奖次数 减1
+    let remainLotteryNum = store.state.setting.remainLotteryNum - 1;
+    store.commit('changeRemainLotteryNumState', remainLotteryNum);
 
     let randomNum = parseInt(Math.random() * 5);
     let rewardName = rewards[randomNum];
@@ -95,7 +109,7 @@ const rotateBeforeClick = () => {
       let roundRotateDegNum = roundRotateDeg.value + 1;
       roundRotateDeg.value = roundRotateDegNum;
     }
-  }, 40);
+  }, 30);
 };
 
 /// 子函数区
