@@ -3,12 +3,15 @@
   <div class="lottery-circle-wrapper">
     <div class="lottery-circle-container">
       <div class="lottery-circle">
-        <div class="lottery-circle-img-container">
+        <div
+          class="lottery-circle-img-container lotteryRound-anim"
+          :style="`animation-play-state:${rotateAnimState};`"
+        >
           <img
             class="lottery-circle-img"
             src="@/assets/image/turntable.png"
             alt=""
-            :style="`transform:rotate(${roundRotateDeg}deg)`"
+            :style="`transform:rotate(${roundRotateDeg}deg);`"
           />
         </div>
 
@@ -44,20 +47,36 @@ import { onMounted, ref } from 'vue';
 import rewards from '@/utils/constants';
 
 // 常量区
+// 默认角度
 const roundRotateDeg = ref(30);
+// 默认旋转动画状态
+const rotateAnimState = ref('paused');
+// 默认的旋转状态
+const isRotate = ref(false);
+
+// computed
 
 // 生命周期区
 onMounted(() => {
   console.log(rewards);
 });
 //方法区
+
+// 主函数区
 const clickLotteryButton = () => {
-  let randomNum = parseInt(Math.random() * 5);
-  let rewardName = rewards[randomNum];
-  console.log('点击抽奖按钮', randomNum, rewardName);
-  let realRoundRotateDeg = randomNum * 60 + 30;
-  //   设置旋转的子函数 详情在子函数区
-  rotateFun(realRoundRotateDeg);
+  //   如果圆盘没在旋转，那么就让他旋转
+  let isRotateState = isRotate.value;
+
+  if (!isRotateState) {
+    rotateAnimState.value = 'paused';
+
+    let randomNum = parseInt(Math.random() * 5);
+    let rewardName = rewards[randomNum];
+    console.log('点击抽奖按钮', randomNum, rewardName);
+    let realRoundRotateDeg = randomNum * 60 + 30;
+    //   设置旋转的子函数 详情在子函数区
+    rotateFun(realRoundRotateDeg);
+  }
 };
 /// 子函数区
 // 用于设置旋转圈数的函数
@@ -68,14 +87,24 @@ const rotateFun = (angle) => {
   //当前的角度
   let nowAngle = 0;
 
+  //基本的旋转角度
+  //必须为360的倍数，仅是增加圈数
+  let basicAngle = 720;
+
+  //设置圆盘在旋转状态
+  isRotate.value = true;
+
   timer = setInterval(() => {
     // 当前的角度大于需要旋转的角度时，重置当前角度，清空定时器
-    // 否则就不断给当前角度nowAngle 增加角度，产生旋转效果
-    if (nowAngle >= angle) {
+    // 否则就不断给当前角度nowAngle 增加角度，产生旋转效果 ，增加几无所谓，只要合适，本次使用的是10
+    //Math.ceil(basicAngle+angle-nowAngle)*0.05 是加的圈数+需要转的角度 - 当前的角度 *0.05
+    //也是说 加的圈数+需要转的角度 是一定的，当前的角度是逐渐增大的，换句话说 当前的角度越大，给的值就越小，看起转的就越慢
+    if (nowAngle >= angle + basicAngle) {
       nowAngle = 0;
       clearInterval(timer);
+      isRotate.value = false;
     } else {
-      nowAngle = nowAngle + 10;
+      nowAngle = nowAngle + Math.ceil(basicAngle + angle - nowAngle) * 0.05;
       roundRotateDeg.value = nowAngle;
     }
   }, 50);
